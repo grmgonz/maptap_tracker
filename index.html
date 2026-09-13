@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maptap Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef1e4;
+    --paper-raised: #f8f9f1;
+    --paper-sunken: #e2e6d6;
+    --ink: #1b2b28;
+    --ink-soft: #57685f;
+    --ink-faint: #8b988e;
+    --line: rgba(27, 43, 40, 0.14);
+    --pine: #35604f;
+    --pine-strong: #24463a;
+    --brass: #96702c;
+    --brass-bg: #e9d9b0;
+    --ember: #b14e28;
+    --ember-bg: #f0d9c9;
+    --shadow: rgba(27, 43, 40, 0.10);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #121d1a;
+      --paper-raised: #182420;
+      --paper-sunken: #0d1512;
+      --ink: #e8ead9;
+      --ink-soft: #a9b6ac;
+      --ink-faint: #71847a;
+      --line: rgba(232, 234, 217, 0.14);
+      --pine: #7fb59d;
+      --pine-strong: #a6d3bd;
+      --brass: #dcae5c;
+      --brass-bg: #4a3a1c;
+      --ember: #e08758;
+      --ember-bg: #4a2a1c;
+      --shadow: rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #121d1a;
+    --paper-raised: #182420;
+    --paper-sunken: #0d1512;
+    --ink: #e8ead9;
+    --ink-soft: #a9b6ac;
+    --ink-faint: #71847a;
+    --line: rgba(232, 234, 217, 0.14);
+    --pine: #7fb59d;
+    --pine-strong: #a6d3bd;
+    --brass: #dcae5c;
+    --brass-bg: #4a3a1c;
+    --ember: #e08758;
+    --ember-bg: #4a2a1c;
+    --shadow: rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Public Sans", system-ui, sans-serif;
+  }
+
+  .page {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 20px 64px;
+    background-image:
+      repeating-radial-gradient(circle at 12% 8%, transparent 0, transparent 38px, var(--line) 39px, transparent 40px, transparent 78px),
+      repeating-radial-gradient(circle at 92% 82%, transparent 0, transparent 52px, var(--line) 53px, transparent 54px, transparent 104px);
+    background-attachment: local;
+  }
+
+  .masthead {
+    padding: 48px 0 28px;
+    border-bottom: 3px solid var(--pine-strong);
+    text-wrap: balance;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .eyebrow {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pine);
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-family: "Big Shoulders Display", sans-serif;
+    font-weight: 900;
+    font-size: clamp(40px, 7vw, 68px);
+    line-height: 0.94;
+    letter-spacing: 0.01em;
+    margin: 0 0 10px;
+    text-wrap: balance;
+  }
+  .tagline {
+    margin: 0;
+    max-width: 52ch;
+    color: var(--ink-soft);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .gear-btn {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--paper-raised);
+    color: var(--ink-soft);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 6px;
+  }
+  .gear-btn:hover { color: var(--pine); border-color: var(--pine); }
+  .gear-btn svg { width: 18px; height: 18px; }
+
+  .settings-panel {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin-top: 24px;
+  }
+  .settings-panel h2 {
+    font-family: "Big Shoulders Display", sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    margin: 0 0 6px;
+  }
+  .settings-panel p {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin: 0 0 14px;
+  }
+  .settings-row {
+    display: flex;
+    gap: 10px;
+  }
+  .settings-row input {
+    flex: 1;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--paper-sunken);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 9px 11px;
+  }
+  .settings-row button {
+    font-family: "Big Shoulders Display", sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    background: var(--pine-strong);
+    color: var(--paper-raised);
+    border: none;
+    border-radius: 3px;
+    padding: 0 18px;
+    cursor: pointer;
+  }
+  .settings-row button:hover { background: var(--pine); }
+
+  .connect-banner {
+    background: var(--ember-bg);
+    color: var(--ember);
+    border: 1px solid var(--ember);
+    border-radius: 4px;
+    padding: 14px 18px;
+    margin-top: 24px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .connect-banner button {
+    background: none;
+    border: none;
+    color: var(--ember);
+    text-decoration: underline;
+    font: inherit;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .login-wrap {
+    max-width: 360px;
+    margin: 40px auto 0;
+  }
+  .login-card {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 28px;
+    box-shadow: 0 1px 0 var(--shadow);
+  }
+  .login-card h2 {
+    font-family: "Big Shoulders Display", sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    margin: 0 0 6px;
+  }
+  .login-card > p {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin: 0 0 20px;
+  }
+  .login-select {
+    width: 100%;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--paper-sunken);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 10px 12px;
+  }
+  #loginBtn {
+    width: 100%;
+    font-family: "Big Shoulders Display", sans-serif;
+    font-weight: 800;
+    font-size: 17px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    background: var(--pine-strong);
+    color: var(--paper-raised);
+    border: none;
+    border-radius: 3px;
+    padding: 12px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  #loginBtn:hover { background: var(--pine); }
+  #loginBtn:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+  .login-error {
+    background: var(--ember-bg);
+    color: var(--ember);
+    border: 1px solid var(--ember);
+    border-radius: 3px;
+    padding: 10px 12px;
+    font-size: 13px;
+    margin-bottom: 14px;
+  }
+
+  .user-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-top: 14px;
+  }
+  .user-bar strong { color: var(--pine); font-weight: 600; }
+  .user-bar button {
+    background: none;
+    border: none;
+    color: var(--ink-faint);
+    text-decoration: underline;
+    font: inherit;
+    cursor: pointer;
+    padding: 0;
+  }
+  .user-bar button:hover { color: var(--ember); }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    padding-top: 32px;
+  }
+  @media (min-width: 800px) {
+    .layout {
+      grid-template-columns: 340px minmax(0, 1fr);
+      grid-template-areas:
+        "log board"
+        "feed feed";
+    }
+    .log-panel { grid-area: log; }
+    .board-panel { grid-area: board; }
+    .feed-panel { grid-area: feed; }
+  }
+
+  .panel {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 24px;
+    box-shadow: 0 1px 0 var(--shadow);
+  }
+
+  .panel h2 {
+    font-family: "Big Shoulders Display", sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: 0.01em;
+    margin: 0 0 18px;
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .panel-head h2 { margin: 0; }
+  .panel-meta {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .field input,
+  .field textarea {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--paper-sunken);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 10px 12px;
+    resize: vertical;
+  }
+  .field textarea { line-height: 1.5; }
+  .field input:focus,
+  .field textarea:focus {
+    outline: 2px solid var(--pine);
+    outline-offset: 1px;
+  }
+
+  #submitBtn {
+    width: 100%;
+    font-family: "Big Shoulders Display", sans-serif;
+    font-weight: 800;
+    font-size: 17px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    background: var(--pine-strong);
+    color: var(--paper-raised);
+    border: none;
+    border-radius: 3px;
+    padding: 12px;
+    cursor: pointer;
+    transition: background 0.15s ease, opacity 0.15s ease;
+  }
+  #submitBtn:hover:not(:disabled) { background: var(--pine); }
+  #submitBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+  #submitBtn:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+  .hint {
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin: 12px 0 0;
+    line-height: 1.5;
+  }
+
+  .parse-preview, .parse-error {
+    border-radius: 3px;
+    padding: 12px;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+  .parse-preview {
+    background: var(--paper-sunken);
+    border: 1px dashed var(--line);
+  }
+  .parse-preview .pp-date {
+    font-family: "IBM Plex Mono", monospace;
+    color: var(--pine);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .parse-preview .pp-rounds {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .round-chip {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 3px 7px;
+    font-size: 12.5px;
+  }
+  .pp-final {
+    font-family: "IBM Plex Mono", monospace;
+    font-weight: 600;
+  }
+  .parse-error {
+    background: var(--ember-bg);
+    color: var(--ember);
+    border: 1px solid var(--ember);
+  }
+
+  .board-table { display: flex; flex-direction: column; }
+  .board-row {
+    display: grid;
+    grid-template-columns: 34px minmax(0,1fr) auto auto auto;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--line);
+  }
+  .board-row:last-child { border-bottom: none; }
+  .board-row.head {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-bottom: 8px;
+  }
+  .rank {
+    font-family: "Big Shoulders Display", sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--ink-faint);
+    text-align: center;
+  }
+  .rank.top1 { color: var(--brass); }
+  .player-name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .player-sub {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+  .total {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    font-size: 16px;
+    text-align: right;
+    min-width: 56px;
+  }
+  .streak {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    color: var(--ink-faint);
+    min-width: 44px;
+    justify-content: flex-end;
+  }
+  .streak.active { color: var(--ember); }
+  .streak svg { width: 13px; height: 13px; flex: none; }
+  .avg {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    color: var(--ink-faint);
+    text-align: right;
+    min-width: 40px;
+  }
+
+  .feed { display: flex; flex-direction: column; gap: 18px; }
+  .feed-day-label {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 6px;
+    margin-bottom: 4px;
+  }
+  .feed-entry {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+  }
+  .feed-entry .player-name { flex: none; min-width: 110px; }
+  .feed-rounds {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    flex: 1;
+    min-width: 160px;
+  }
+  .feed-final {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: var(--pine-strong);
+    background: var(--paper-sunken);
+    border-radius: 3px;
+    padding: 3px 8px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .empty-note {
+    color: var(--ink-faint);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .example-tag {
+    display: inline-block;
+    align-self: flex-start;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brass);
+    background: var(--brass-bg);
+    border-radius: 3px;
+    padding: 2px 6px;
+    margin-bottom: 10px;
+  }
+
+  .status-bar {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .status-bar button {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--ink-soft);
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  .status-bar button:hover { border-color: var(--pine); color: var(--pine); }
+
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header class="masthead">
+    <div>
+      <span class="eyebrow">Daily score tracker</span>
+      <h1>Maptap Tracker</h1>
+      <p class="tagline">Paste today's result straight from maptap.gg. It lands on the board for everyone — streaks and running totals update automatically. Backed by a Google Sheet.</p>
+      <div class="user-bar" id="userBar" hidden>
+        Logged in as <strong id="userBarName"></strong> · <button id="logoutBtn" type="button">Log out</button>
+      </div>
+    </div>
+    <button class="gear-btn" id="gearBtn" type="button" title="Settings" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </header>
+
+  <div class="login-wrap" id="loginScreen">
+    <div class="login-card">
+      <h2>Sign in</h2>
+      <p>This tracker is shared by three players. Pick your name and enter the group password to log a round or view live scores.</p>
+      <div id="loginError" class="login-error" hidden></div>
+      <label class="field">
+        <span>Player</span>
+        <select id="userSelect" class="login-select">
+          <option value="Gabe">Gabe</option>
+          <option value="Neha">Neha</option>
+          <option value="Vic">Vic</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Password</span>
+        <input id="passwordInput" type="password" autocomplete="current-password" />
+      </label>
+      <button id="loginBtn" type="button">Log in</button>
+    </div>
+  </div>
+
+  <div class="settings-panel" id="settingsPanel" hidden>
+    <h2>Connect your Google Sheet</h2>
+    <p>Paste the Web App URL from your Apps Script deployment (see <code>apps-script.gs</code> for setup steps). It's saved in this browser only.</p>
+    <div class="settings-row">
+      <input id="scriptUrlInput" type="text" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" />
+      <button id="saveUrlBtn" type="button">Save</button>
+    </div>
+  </div>
+
+  <div id="appBody" hidden>
+    <div class="connect-banner" id="connectBanner" hidden>
+      Not connected to a Google Sheet yet. <button id="connectBannerBtn" type="button">Add your Apps Script URL</button> to start saving real scores — until then you're looking at example data.
+    </div>
+
+    <main class="layout">
+      <section class="panel log-panel" aria-labelledby="log-heading">
+        <h2 id="log-heading">Log today's round</h2>
+        <label class="field">
+          <span>Paste your Maptap result</span>
+          <textarea id="pasteInput" rows="4" placeholder="www.maptap.gg September 11&#10;95🏅 68😁 65🤫 79👏 77👏&#10;Final score: 761"></textarea>
+        </label>
+        <div id="parsePreview" class="parse-preview" hidden></div>
+        <div id="parseError" class="parse-error" hidden></div>
+        <button id="submitBtn" type="button" disabled>Add to tracker</button>
+        <p class="hint">Copy the result straight from the maptap.gg share button — the date, each round's score, and the final score parse automatically. It's saved under your logged-in name.</p>
+      </section>
+
+      <section class="panel board-panel" aria-labelledby="board-heading">
+        <div class="panel-head">
+          <h2 id="board-heading">Leaderboard</h2>
+          <span id="boardMeta" class="panel-meta"></span>
+        </div>
+        <div class="board-table" id="board"></div>
+      </section>
+
+      <section class="panel feed-panel" aria-labelledby="feed-heading">
+        <div class="panel-head">
+          <h2 id="feed-heading">Recent rounds</h2>
+        </div>
+        <div class="feed" id="feed"></div>
+      </section>
+    </main>
+
+    <footer class="status-bar">
+      <span id="statusText">Loading…</span>
+      <button id="refreshBtn" type="button">Refresh</button>
+    </footer>
+  </div>
+</div>
+
+<script>
+(function () {
+  // Paste your deployed Apps Script Web App URL here (ends in /exec) so
+  // everyone who opens this file gets the same sheet automatically.
+  // Leave blank to configure per-browser via the gear icon instead.
+  var CONFIG = {
+    SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzDmBAnoKRdQNbQix4GJRGTXsfAXTwISFO3Mzek9hMdc2AapMQSflfnkmvs9O4jvsJb8A/exec",
+    PASSWORD: "ChesterBean",
+    USERS: ["Gabe", "Neha", "Vic"]
+  };
+
+  var POLL_MS = 20000;
+
+  var MONTHS = ["january","february","march","april","may","june","july","august","september","october","november","december"];
+  var FLAME_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3-2 4-2 7 0 1.5 1 2.5 2 2.5s2-1 2-2.2c0-.7-.3-1.2-.3-1.2 2 1 3.3 3.4 3.3 5.9 0 3.3-2.7 6-5 6s-5-2.2-5-5.5C6.8 12.6 9 10 9 8c0-1.5-.5-2.5-1-3.5C10 4 11 3 12 2z"/></svg>';
+
+  function slug(name) {
+    return (name || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "player";
+  }
+
+  function inferYear(monthIdx, day) {
+    var now = new Date();
+    var year = now.getFullYear();
+    var candidate = new Date(Date.UTC(year, monthIdx, day));
+    var today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+    var diffDays = (candidate - today) / 86400000;
+    if (diffDays > 2) year -= 1;
+    return year;
+  }
+
+  function todayISO() {
+    var now = new Date();
+    return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())).toISOString().slice(0, 10);
+  }
+
+  function daysBetween(isoEarlier, isoLater) {
+    var a = new Date(isoEarlier + "T00:00:00Z");
+    var b = new Date(isoLater + "T00:00:00Z");
+    return Math.round((b - a) / 86400000);
+  }
+
+  function parseMaptap(raw) {
+    var lines = String(raw || "").split(/\n/).map(function (l) { return l.trim(); }).filter(Boolean);
+    var dateISO = null, dateLabel = null, rounds = [], finalScore = null;
+    var monthRe = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+(\d{1,2})(?:st|nd|rd|th)?\b(?:,?\s*(\d{4}))?/i;
+    var finalRe = /final\s*score\s*:?\s*(\d+)/i;
+    var tokenRe = /(\d{1,3})\s*((?:\p{Extended_Pictographic}️?‍?)+)/gu;
+
+    lines.forEach(function (line) {
+      if (!dateISO) {
+        var dm = line.match(monthRe);
+        if (dm) {
+          var key = dm[1].toLowerCase().slice(0, 3);
+          var mIdx = MONTHS.findIndex(function (m) { return m.slice(0, 3) === key; });
+          if (mIdx >= 0) {
+            var day = parseInt(dm[2], 10);
+            var year = dm[3] ? parseInt(dm[3], 10) : inferYear(mIdx, day);
+            dateISO = new Date(Date.UTC(year, mIdx, day)).toISOString().slice(0, 10);
+            dateLabel = MONTHS[mIdx][0].toUpperCase() + MONTHS[mIdx].slice(1) + " " + day;
+          }
+        }
+      }
+      var fm = line.match(finalRe);
+      if (fm) {
+        finalScore = parseInt(fm[1], 10);
+        return;
+      }
+      var matches = Array.from(line.matchAll(tokenRe));
+      if (matches.length >= 2) {
+        rounds = matches.map(function (m) { return { score: parseInt(m[1], 10), emoji: m[2] }; });
+      }
+    });
+
+    return { dateISO: dateISO, dateLabel: dateLabel, rounds: rounds, finalScore: finalScore };
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function roundChipsHtml(rounds) {
+    return (rounds || []).map(function (r) {
+      return '<span class="round-chip">' + r.score + " " + r.emoji + "</span>";
+    }).join("");
+  }
+
+  // ---- elements ----
+  var loginScreen = document.getElementById("loginScreen");
+  var appBody = document.getElementById("appBody");
+  var userSelect = document.getElementById("userSelect");
+  var passwordInput = document.getElementById("passwordInput");
+  var loginBtn = document.getElementById("loginBtn");
+  var loginError = document.getElementById("loginError");
+  var userBar = document.getElementById("userBar");
+  var userBarName = document.getElementById("userBarName");
+  var logoutBtn = document.getElementById("logoutBtn");
+  var pasteInput = document.getElementById("pasteInput");
+  var parsePreview = document.getElementById("parsePreview");
+  var parseError = document.getElementById("parseError");
+  var submitBtn = document.getElementById("submitBtn");
+  var boardEl = document.getElementById("board");
+  var boardMeta = document.getElementById("boardMeta");
+  var feedEl = document.getElementById("feed");
+  var statusText = document.getElementById("statusText");
+  var refreshBtn = document.getElementById("refreshBtn");
+  var gearBtn = document.getElementById("gearBtn");
+  var settingsPanel = document.getElementById("settingsPanel");
+  var scriptUrlInput = document.getElementById("scriptUrlInput");
+  var saveUrlBtn = document.getElementById("saveUrlBtn");
+  var connectBanner = document.getElementById("connectBanner");
+  var connectBannerBtn = document.getElementById("connectBannerBtn");
+
+  var currentParsed = null;
+  var entries = null; // null = not loaded yet
+  var pollTimer = null;
+  var loggedInUser = null;
+
+  function getScriptUrl() {
+    if (CONFIG.SCRIPT_URL) return CONFIG.SCRIPT_URL;
+    try { return localStorage.getItem("maptap-ledger-script-url") || ""; } catch (e) { return ""; }
+  }
+
+  function setScriptUrl(url) {
+    try { localStorage.setItem("maptap-ledger-script-url", url); } catch (e) {}
+  }
+
+  function getSavedUser() {
+    try { return localStorage.getItem("maptap-ledger-auth-user") || ""; } catch (e) { return ""; }
+  }
+
+  function setSavedUser(name) {
+    try {
+      if (name) localStorage.setItem("maptap-ledger-auth-user", name);
+      else localStorage.removeItem("maptap-ledger-auth-user");
+    } catch (e) {}
+  }
+
+  function enterApp(name) {
+    loggedInUser = name;
+    loginScreen.hidden = true;
+    appBody.hidden = false;
+    userBar.hidden = false;
+    userBarName.textContent = name;
+    refreshSubmitEnabled();
+    loadEntries();
+    if (!pollTimer) pollTimer = setInterval(loadEntries, POLL_MS);
+  }
+
+  function showLogin() {
+    loggedInUser = null;
+    appBody.hidden = true;
+    userBar.hidden = true;
+    loginScreen.hidden = false;
+    passwordInput.value = "";
+    loginError.hidden = true;
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  }
+
+  loginBtn.addEventListener("click", function () {
+    var name = userSelect.value;
+    var password = passwordInput.value;
+    if (CONFIG.USERS.indexOf(name) === -1 || password !== CONFIG.PASSWORD) {
+      loginError.hidden = false;
+      loginError.textContent = "That name/password combination isn't right.";
+      return;
+    }
+    setSavedUser(name);
+    enterApp(name);
+  });
+  passwordInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") loginBtn.click();
+  });
+  logoutBtn.addEventListener("click", function () {
+    setSavedUser("");
+    showLogin();
+  });
+
+  var savedUser = getSavedUser();
+  if (savedUser && CONFIG.USERS.indexOf(savedUser) !== -1) {
+    userSelect.value = savedUser;
+    enterApp(savedUser);
+  } else {
+    showLogin();
+  }
+
+  scriptUrlInput.value = getScriptUrl();
+  connectBanner.hidden = !!getScriptUrl();
+
+  gearBtn.addEventListener("click", function () {
+    settingsPanel.hidden = !settingsPanel.hidden;
+  });
+  connectBannerBtn.addEventListener("click", function () {
+    settingsPanel.hidden = false;
+    scriptUrlInput.focus();
+  });
+  saveUrlBtn.addEventListener("click", function () {
+    var url = scriptUrlInput.value.trim();
+    setScriptUrl(url);
+    connectBanner.hidden = !!url;
+    settingsPanel.hidden = true;
+    loadEntries();
+  });
+
+  function updatePreview() {
+    var raw = pasteInput.value;
+    if (!raw.trim()) {
+      parsePreview.hidden = true;
+      parseError.hidden = true;
+      currentParsed = null;
+      refreshSubmitEnabled();
+      return;
+    }
+    var parsed = parseMaptap(raw);
+    var missing = [];
+    if (!parsed.dateISO) missing.push("a date (e.g. “September 11”)");
+    if (!parsed.rounds.length) missing.push("round scores (e.g. “95🏅”)");
+    if (parsed.finalScore == null) missing.push("a final score line");
+
+    if (missing.length) {
+      parsePreview.hidden = true;
+      parseError.hidden = false;
+      parseError.textContent = "Couldn't find " + missing.join(", ") + ". Paste the result exactly as copied from maptap.gg.";
+      currentParsed = null;
+    } else {
+      parseError.hidden = true;
+      parsePreview.hidden = false;
+      parsePreview.innerHTML =
+        '<div class="pp-date">' + escapeHtml(parsed.dateLabel) + '</div>' +
+        '<div class="pp-rounds">' + roundChipsHtml(parsed.rounds) + '</div>' +
+        '<div class="pp-final">Final score: ' + parsed.finalScore + '</div>';
+      currentParsed = parsed;
+    }
+    refreshSubmitEnabled();
+  }
+
+  function refreshSubmitEnabled() {
+    submitBtn.disabled = !(currentParsed && loggedInUser && getScriptUrl());
+  }
+
+  pasteInput.addEventListener("input", updatePreview);
+  refreshBtn.addEventListener("click", loadEntries);
+
+  submitBtn.addEventListener("click", function () {
+    if (!currentParsed || !loggedInUser) return;
+    var url = getScriptUrl();
+    if (!url) return;
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Adding…";
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        password: CONFIG.PASSWORD,
+        name: loggedInUser,
+        dateISO: currentParsed.dateISO,
+        dateLabel: currentParsed.dateLabel,
+        rounds: currentParsed.rounds,
+        finalScore: currentParsed.finalScore
+      })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        submitBtn.textContent = "Add to tracker";
+        if (!res || res.ok === false) {
+          throw new Error((res && res.error) || "save failed");
+        }
+        pasteInput.value = "";
+        updatePreview();
+        loadEntries();
+      })
+      .catch(function (err) {
+        submitBtn.textContent = "Add to tracker";
+        parseError.hidden = false;
+        parsePreview.hidden = true;
+        parseError.textContent = "Couldn't save that round (" + err.message + "). Check your Apps Script URL in Settings and try again.";
+      })
+      .then(function () { refreshSubmitEnabled(); });
+  });
+
+  // ---- example content shown until real entries load ----
+  var EXAMPLE_ENTRIES = [
+    { name: "Gabe", dateISO: "2026-09-11", dateLabel: "September 11", rounds: [
+        { score: 95, emoji: "🏅" }, { score: 68, emoji: "😁" }, { score: 65, emoji: "🤫" },
+        { score: 79, emoji: "👏" }, { score: 77, emoji: "👏" }
+      ], finalScore: 761 },
+    { name: "Neha", dateISO: "2026-09-11", dateLabel: "September 11", rounds: [
+        { score: 88, emoji: "😁" }, { score: 91, emoji: "🏅" }, { score: 60, emoji: "🤫" },
+        { score: 82, emoji: "👏" }, { score: 70, emoji: "👏" }
+      ], finalScore: 748 },
+    { name: "Vic", dateISO: "2026-09-10", dateLabel: "September 10", rounds: [
+        { score: 72, emoji: "👏" }, { score: 84, emoji: "😁" }, { score: 90, emoji: "🏅" },
+        { score: 66, emoji: "🤫" }, { score: 81, emoji: "👏" }
+      ], finalScore: 733 }
+  ];
+
+  function buildLeaderboard(list) {
+    var groups = {};
+    list.forEach(function (e) {
+      var key = slug(e.name);
+      if (!groups[key]) groups[key] = { name: e.name, dates: [] };
+      groups[key].name = e.name;
+      groups[key].dates.push({ dateISO: e.dateISO, finalScore: e.finalScore });
+    });
+    var today = todayISO();
+    var rows = Object.keys(groups).map(function (key) {
+      var g = groups[key];
+      var sorted = g.dates.slice().sort(function (a, b) { return a.dateISO < b.dateISO ? 1 : -1; });
+      var total = g.dates.reduce(function (sum, d) { return sum + d.finalScore; }, 0);
+      var games = g.dates.length;
+      var streak = 0;
+      var cursor = null;
+      for (var i = 0; i < sorted.length; i++) {
+        var d = sorted[i].dateISO;
+        if (cursor === null) {
+          if (daysBetween(d, today) <= 1) { streak = 1; cursor = d; } else break;
+        } else {
+          if (daysBetween(d, cursor) === 1) { streak++; cursor = d; } else break;
+        }
+      }
+      return { key: key, name: g.name, total: total, games: games, avg: Math.round(total / games), streak: streak };
+    });
+    rows.sort(function (a, b) { return b.total - a.total; });
+    return rows;
+  }
+
+  function renderBoard(list, isExample) {
+    var rows = buildLeaderboard(list);
+    boardMeta.textContent = isExample ? "example" : (rows.length + (rows.length === 1 ? " player" : " players"));
+    var html = '<div class="board-row head"><span></span><span>Player</span><span>Streak</span><span>Avg</span><span>Total</span></div>';
+    if (!rows.length) {
+      boardEl.innerHTML = '<p class="empty-note">No scores yet — be the first to log today’s Maptap.</p>';
+      return;
+    }
+    rows.forEach(function (r, i) {
+      var rank = i + 1;
+      html += '<div class="board-row">' +
+        '<span class="rank' + (rank === 1 ? " top1" : "") + '">' + rank + '</span>' +
+        '<span><div class="player-name">' + escapeHtml(r.name) + '</div><div class="player-sub">' + r.games + (r.games === 1 ? " round" : " rounds") + '</div></span>' +
+        '<span class="streak' + (r.streak > 0 ? " active" : "") + '">' + (r.streak > 0 ? FLAME_SVG : "") + r.streak + '</span>' +
+        '<span class="avg">' + r.avg + '</span>' +
+        '<span class="total">' + r.total + '</span>' +
+      '</div>';
+    });
+    boardEl.innerHTML = html;
+  }
+
+  function renderFeed(list, isExample) {
+    if (!list.length) {
+      feedEl.innerHTML = '<p class="empty-note">Once someone pastes a result, it’ll show up here for everyone.</p>';
+      return;
+    }
+    var sorted = list.slice().sort(function (a, b) {
+      if (a.dateISO !== b.dateISO) return a.dateISO < b.dateISO ? 1 : -1;
+      return (b.submittedAt || "").localeCompare(a.submittedAt || "");
+    });
+    var byDate = {};
+    var order = [];
+    sorted.forEach(function (e) {
+      if (!byDate[e.dateISO]) { byDate[e.dateISO] = []; order.push(e.dateISO); }
+      byDate[e.dateISO].push(e);
+    });
+    var html = "";
+    if (isExample) html += '<span class="example-tag">Example</span>';
+    order.forEach(function (dateISO) {
+      var group = byDate[dateISO];
+      html += '<div><div class="feed-day-label">' + escapeHtml(group[0].dateLabel || dateISO) + '</div>';
+      group.forEach(function (e) {
+        html += '<div class="feed-entry">' +
+          '<span class="player-name">' + escapeHtml(e.name) + '</span>' +
+          '<span class="feed-rounds">' + roundChipsHtml(e.rounds || []) + '</span>' +
+          '<span class="feed-final">' + e.finalScore + '</span>' +
+        '</div>';
+      });
+      html += '</div>';
+    });
+    feedEl.innerHTML = html;
+  }
+
+  function render() {
+    if (entries === null || entries.length === 0) {
+      renderBoard(EXAMPLE_ENTRIES, true);
+      renderFeed(EXAMPLE_ENTRIES, true);
+    } else {
+      renderBoard(entries, false);
+      renderFeed(entries, false);
+    }
+  }
+
+  function loadEntries() {
+    var url = getScriptUrl();
+    if (!url) {
+      statusText.textContent = "Not connected — add your Apps Script URL in Settings.";
+      render();
+      return;
+    }
+    statusText.textContent = "Syncing…";
+    fetch(url + "?password=" + encodeURIComponent(CONFIG.PASSWORD))
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data && data.ok === false) throw new Error(data.error || "unauthorized");
+        entries = (data && data.entries) || [];
+        statusText.textContent = "Synced — " + entries.length + (entries.length === 1 ? " round logged." : " rounds logged.") + " · " + new Date().toLocaleTimeString();
+        render();
+      })
+      .catch(function (err) {
+        statusText.textContent = "Couldn't reach the sheet (" + err.message + "). Check the Apps Script URL and that it's deployed with “Anyone” access.";
+      });
+  }
+
+})();
+</script>
+</body>
+</html>
