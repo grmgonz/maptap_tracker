@@ -114,91 +114,6 @@
     line-height: 1.5;
   }
 
-  .gear-btn {
-    flex: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 1px solid var(--line);
-    background: var(--paper-raised);
-    color: var(--ink-soft);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 6px;
-  }
-  .gear-btn:hover { color: var(--pine); border-color: var(--pine); }
-  .gear-btn svg { width: 18px; height: 18px; }
-
-  .settings-panel {
-    background: var(--paper-raised);
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    padding: 20px 24px;
-    margin-top: 24px;
-  }
-  .settings-panel h2 {
-    font-family: "Big Shoulders Display", sans-serif;
-    font-weight: 800;
-    font-size: 20px;
-    margin: 0 0 6px;
-  }
-  .settings-panel p {
-    font-size: 13px;
-    color: var(--ink-soft);
-    line-height: 1.5;
-    margin: 0 0 14px;
-  }
-  .settings-row {
-    display: flex;
-    gap: 10px;
-  }
-  .settings-row input {
-    flex: 1;
-    font-family: "IBM Plex Mono", monospace;
-    font-size: 13px;
-    color: var(--ink);
-    background: var(--paper-sunken);
-    border: 1px solid var(--line);
-    border-radius: 3px;
-    padding: 9px 11px;
-  }
-  .settings-row button {
-    font-family: "Big Shoulders Display", sans-serif;
-    font-weight: 800;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    background: var(--pine-strong);
-    color: var(--paper-raised);
-    border: none;
-    border-radius: 3px;
-    padding: 0 18px;
-    cursor: pointer;
-  }
-  .settings-row button:hover { background: var(--pine); }
-
-  .connect-banner {
-    background: var(--ember-bg);
-    color: var(--ember);
-    border: 1px solid var(--ember);
-    border-radius: 4px;
-    padding: 14px 18px;
-    margin-top: 24px;
-    font-size: 13px;
-    line-height: 1.6;
-  }
-  .connect-banner button {
-    background: none;
-    border: none;
-    color: var(--ember);
-    text-decoration: underline;
-    font: inherit;
-    cursor: pointer;
-    padding: 0;
-  }
-
   .login-wrap {
     max-width: 360px;
     margin: 40px auto 0;
@@ -262,13 +177,13 @@
   .user-bar {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     font-family: "IBM Plex Mono", monospace;
-    font-size: 12px;
+    font-size: 16px;
     color: var(--ink-faint);
-    margin-top: 14px;
+    margin-top: 16px;
   }
-  .user-bar strong { color: var(--pine); font-weight: 600; }
+  .user-bar strong { color: var(--pine); font-weight: 700; font-size: 19px; }
   .user-bar button {
     background: none;
     border: none;
@@ -426,7 +341,7 @@
   .board-table { display: flex; flex-direction: column; }
   .board-row {
     display: grid;
-    grid-template-columns: 34px minmax(0,1fr) auto auto auto;
+    grid-template-columns: 34px minmax(0,1fr) auto auto;
     align-items: center;
     gap: 14px;
     padding: 12px 4px;
@@ -460,34 +375,43 @@
     font-size: 11px;
     color: var(--ink-faint);
   }
-  .total {
+  .total, .avg {
     font-family: "IBM Plex Mono", monospace;
     font-variant-numeric: tabular-nums;
-    font-weight: 600;
-    font-size: 16px;
     text-align: right;
-    min-width: 56px;
+    transition: font-size 0.15s ease, color 0.15s ease;
   }
-  .streak {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-family: "IBM Plex Mono", monospace;
-    font-variant-numeric: tabular-nums;
-    font-size: 13px;
-    color: var(--ink-faint);
-    min-width: 44px;
-    justify-content: flex-end;
+  .total { min-width: 56px; }
+  .avg { min-width: 40px; }
+  .metric-primary {
+    font-weight: 700;
+    font-size: 19px;
+    color: var(--pine-strong);
   }
-  .streak.active { color: var(--ember); }
-  .streak svg { width: 13px; height: 13px; flex: none; }
-  .avg {
-    font-family: "IBM Plex Mono", monospace;
-    font-variant-numeric: tabular-nums;
+  .metric-secondary {
+    font-weight: 400;
     font-size: 12px;
     color: var(--ink-faint);
+  }
+
+  .sort-btn {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
     text-align: right;
-    min-width: 40px;
+    text-transform: inherit;
+    letter-spacing: inherit;
+    cursor: pointer;
+  }
+  .sort-btn:hover { color: var(--pine); }
+  .sort-btn:focus-visible { outline: 2px solid var(--pine); outline-offset: 2px; }
+  .sort-btn.active {
+    color: var(--pine-strong);
+    font-weight: 700;
+    font-size: 13px;
   }
 
   .feed { display: flex; flex-direction: column; gap: 18px; }
@@ -581,20 +505,17 @@
     <div>
       <span class="eyebrow">Daily score tracker</span>
       <h1>Maptap Tracker</h1>
-      <p class="tagline">Paste today's result straight from maptap.gg. It lands on the board for everyone — streaks and running totals update automatically. Backed by a Google Sheet.</p>
+      <p class="tagline">Paste today's result straight from maptap.gg. It lands on the leaderboard for everyone to see.</p>
       <div class="user-bar" id="userBar" hidden>
         Logged in as <strong id="userBarName"></strong> · <button id="logoutBtn" type="button">Log out</button>
       </div>
     </div>
-    <button class="gear-btn" id="gearBtn" type="button" title="Settings" aria-label="Settings">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
-    </button>
   </header>
 
   <div class="login-wrap" id="loginScreen">
     <div class="login-card">
       <h2>Sign in</h2>
-      <p>This tracker is shared by three players. Pick your name and enter the group password to log a round or view live scores.</p>
+      <p>This tracker is shared by the group. Pick your name and enter the group password to log a round or view live scores.</p>
       <div id="loginError" class="login-error" hidden></div>
       <label class="field">
         <span>Player</span>
@@ -603,6 +524,7 @@
           <option value="Neha">Neha</option>
           <option value="Vic">Vic</option>
           <option value="Nandan">Nandan</option>
+          <option value="Banu">Banu</option>
         </select>
       </label>
       <label class="field">
@@ -613,20 +535,7 @@
     </div>
   </div>
 
-  <div class="settings-panel" id="settingsPanel" hidden>
-    <h2>Connect your Google Sheet</h2>
-    <p>Paste the Web App URL from your Apps Script deployment (see <code>apps-script.gs</code> for setup steps). It's saved in this browser only.</p>
-    <div class="settings-row">
-      <input id="scriptUrlInput" type="text" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" />
-      <button id="saveUrlBtn" type="button">Save</button>
-    </div>
-  </div>
-
   <div id="appBody" hidden>
-    <div class="connect-banner" id="connectBanner" hidden>
-      Not connected to a Google Sheet yet. <button id="connectBannerBtn" type="button">Add your Apps Script URL</button> to start saving real scores — until then you're looking at example data.
-    </div>
-
     <main class="layout">
       <section class="panel log-panel" aria-labelledby="log-heading">
         <h2 id="log-heading">Log today's round</h2>
@@ -665,19 +574,17 @@
 
 <script>
 (function () {
-  // Paste your deployed Apps Script Web App URL here (ends in /exec) so
-  // everyone who opens this file gets the same sheet automatically.
-  // Leave blank to configure per-browser via the gear icon instead.
+  // Deployed Apps Script Web App URL (ends in /exec) — the app's only
+  // database endpoint, so everyone who opens this file uses the same sheet.
   var CONFIG = {
     SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzDmBAnoKRdQNbQix4GJRGTXsfAXTwISFO3Mzek9hMdc2AapMQSflfnkmvs9O4jvsJb8A/exec",
     PASSWORD: "chesterbean",
-    USERS: ["Gabe", "Neha", "Vic", "Nandan"]
+    USERS: ["Gabe", "Neha", "Vic", "Nandan", "Banu"]
   };
 
   var POLL_MS = 20000;
 
   var MONTHS = ["january","february","march","april","may","june","july","august","september","october","november","december"];
-  var FLAME_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3-2 4-2 7 0 1.5 1 2.5 2 2.5s2-1 2-2.2c0-.7-.3-1.2-.3-1.2 2 1 3.3 3.4 3.3 5.9 0 3.3-2.7 6-5 6s-5-2.2-5-5.5C6.8 12.6 9 10 9 8c0-1.5-.5-2.5-1-3.5C10 4 11 3 12 2z"/></svg>';
 
   function slug(name) {
     return (name || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "player";
@@ -691,17 +598,6 @@
     var diffDays = (candidate - today) / 86400000;
     if (diffDays > 2) year -= 1;
     return year;
-  }
-
-  function todayISO() {
-    var now = new Date();
-    return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())).toISOString().slice(0, 10);
-  }
-
-  function daysBetween(isoEarlier, isoLater) {
-    var a = new Date(isoEarlier + "T00:00:00Z");
-    var b = new Date(isoLater + "T00:00:00Z");
-    return Math.round((b - a) / 86400000);
   }
 
   function parseMaptap(raw) {
@@ -770,25 +666,22 @@
   var feedEl = document.getElementById("feed");
   var statusText = document.getElementById("statusText");
   var refreshBtn = document.getElementById("refreshBtn");
-  var gearBtn = document.getElementById("gearBtn");
-  var settingsPanel = document.getElementById("settingsPanel");
-  var scriptUrlInput = document.getElementById("scriptUrlInput");
-  var saveUrlBtn = document.getElementById("saveUrlBtn");
-  var connectBanner = document.getElementById("connectBanner");
-  var connectBannerBtn = document.getElementById("connectBannerBtn");
 
   var currentParsed = null;
   var entries = null; // null = not loaded yet
   var pollTimer = null;
   var loggedInUser = null;
+  var sortBy = "total"; // "total" or "avg"
+
+  boardEl.addEventListener("click", function (e) {
+    var btn = e.target.closest(".sort-btn");
+    if (!btn) return;
+    sortBy = btn.dataset.sort;
+    render();
+  });
 
   function getScriptUrl() {
-    if (CONFIG.SCRIPT_URL) return CONFIG.SCRIPT_URL;
-    try { return localStorage.getItem("maptap-ledger-script-url") || ""; } catch (e) { return ""; }
-  }
-
-  function setScriptUrl(url) {
-    try { localStorage.setItem("maptap-ledger-script-url", url); } catch (e) {}
+    return CONFIG.SCRIPT_URL;
   }
 
   function getSavedUser() {
@@ -849,24 +742,6 @@
   } else {
     showLogin();
   }
-
-  scriptUrlInput.value = getScriptUrl();
-  connectBanner.hidden = !!getScriptUrl();
-
-  gearBtn.addEventListener("click", function () {
-    settingsPanel.hidden = !settingsPanel.hidden;
-  });
-  connectBannerBtn.addEventListener("click", function () {
-    settingsPanel.hidden = false;
-    scriptUrlInput.focus();
-  });
-  saveUrlBtn.addEventListener("click", function () {
-    var url = scriptUrlInput.value.trim();
-    setScriptUrl(url);
-    connectBanner.hidden = !!url;
-    settingsPanel.hidden = true;
-    loadEntries();
-  });
 
   function updatePreview() {
     var raw = pasteInput.value;
@@ -939,7 +814,7 @@
         submitBtn.textContent = "Add to tracker";
         parseError.hidden = false;
         parsePreview.hidden = true;
-        parseError.textContent = "Couldn't save that round (" + err.message + "). Check your Apps Script URL in Settings and try again.";
+        parseError.textContent = "Couldn't save that round (" + err.message + "). Check the Apps Script deployment and try again.";
       })
       .then(function () { refreshSubmitEnabled(); });
   });
@@ -968,32 +843,23 @@
       groups[key].name = e.name;
       groups[key].dates.push({ dateISO: e.dateISO, finalScore: e.finalScore });
     });
-    var today = todayISO();
     var rows = Object.keys(groups).map(function (key) {
       var g = groups[key];
-      var sorted = g.dates.slice().sort(function (a, b) { return a.dateISO < b.dateISO ? 1 : -1; });
       var total = g.dates.reduce(function (sum, d) { return sum + d.finalScore; }, 0);
       var games = g.dates.length;
-      var streak = 0;
-      var cursor = null;
-      for (var i = 0; i < sorted.length; i++) {
-        var d = sorted[i].dateISO;
-        if (cursor === null) {
-          if (daysBetween(d, today) <= 1) { streak = 1; cursor = d; } else break;
-        } else {
-          if (daysBetween(d, cursor) === 1) { streak++; cursor = d; } else break;
-        }
-      }
-      return { key: key, name: g.name, total: total, games: games, avg: Math.round(total / games), streak: streak };
+      return { key: key, name: g.name, total: total, games: games, avg: Math.round(total / games) };
     });
-    rows.sort(function (a, b) { return b.total - a.total; });
+    rows.sort(function (a, b) { return b[sortBy] - a[sortBy]; });
     return rows;
   }
 
   function renderBoard(list, isExample) {
     var rows = buildLeaderboard(list);
     boardMeta.textContent = isExample ? "example" : (rows.length + (rows.length === 1 ? " player" : " players"));
-    var html = '<div class="board-row head"><span></span><span>Player</span><span>Streak</span><span>Avg</span><span>Total</span></div>';
+    var html = '<div class="board-row head"><span></span><span>Player</span>' +
+      '<button type="button" class="sort-btn' + (sortBy === "avg" ? " active" : "") + '" data-sort="avg">Avg</button>' +
+      '<button type="button" class="sort-btn' + (sortBy === "total" ? " active" : "") + '" data-sort="total">Total</button>' +
+    '</div>';
     if (!rows.length) {
       boardEl.innerHTML = '<p class="empty-note">No scores yet — be the first to log today’s Maptap.</p>';
       return;
@@ -1003,9 +869,8 @@
       html += '<div class="board-row">' +
         '<span class="rank' + (rank === 1 ? " top1" : "") + '">' + rank + '</span>' +
         '<span><div class="player-name">' + escapeHtml(r.name) + '</div><div class="player-sub">' + r.games + (r.games === 1 ? " round" : " rounds") + '</div></span>' +
-        '<span class="streak' + (r.streak > 0 ? " active" : "") + '">' + (r.streak > 0 ? FLAME_SVG : "") + r.streak + '</span>' +
-        '<span class="avg">' + r.avg + '</span>' +
-        '<span class="total">' + r.total + '</span>' +
+        '<span class="avg ' + (sortBy === "avg" ? "metric-primary" : "metric-secondary") + '">' + r.avg + '</span>' +
+        '<span class="total ' + (sortBy === "total" ? "metric-primary" : "metric-secondary") + '">' + r.total + '</span>' +
       '</div>';
     });
     boardEl.innerHTML = html;
@@ -1056,7 +921,7 @@
   function loadEntries() {
     var url = getScriptUrl();
     if (!url) {
-      statusText.textContent = "Not connected — add your Apps Script URL in Settings.";
+      statusText.textContent = "Not connected — set CONFIG.SCRIPT_URL in index.html.";
       render();
       return;
     }
