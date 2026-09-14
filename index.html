@@ -205,10 +205,12 @@
     .layout {
       grid-template-columns: 340px minmax(0, 1fr);
       grid-template-areas:
-        "log board"
+        "log daily"
+        "board board"
         "feed feed";
     }
     .log-panel { grid-area: log; }
+    .daily-panel { grid-area: daily; }
     .board-panel { grid-area: board; }
     .feed-panel { grid-area: feed; }
   }
@@ -413,6 +415,11 @@
     font-weight: 700;
     font-size: 13px;
   }
+  .col-right { text-align: right; }
+
+  .daily-panel .board-row {
+    grid-template-columns: 34px minmax(0,1fr) auto;
+  }
 
   .feed { display: flex; flex-direction: column; gap: 18px; }
   .feed-day-label {
@@ -549,9 +556,17 @@
         <p class="hint">Copy the result straight from the maptap.gg share button — the date, each round's score, and the final score parse automatically. It's saved under your logged-in name.</p>
       </section>
 
+      <section class="panel daily-panel" aria-labelledby="daily-heading">
+        <div class="panel-head">
+          <h2 id="daily-heading">Today's Leaderboard</h2>
+          <span id="dailyMeta" class="panel-meta"></span>
+        </div>
+        <div class="board-table" id="dailyBoard"></div>
+      </section>
+
       <section class="panel board-panel" aria-labelledby="board-heading">
         <div class="panel-head">
-          <h2 id="board-heading">Leaderboard</h2>
+          <h2 id="board-heading">Overall Leaderboard</h2>
           <span id="boardMeta" class="panel-meta"></span>
         </div>
         <div class="board-table" id="board"></div>
@@ -598,6 +613,24 @@
     var diffDays = (candidate - today) / 86400000;
     if (diffDays > 2) year -= 1;
     return year;
+  }
+
+  function todayISO() {
+    var now = new Date();
+    return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())).toISOString().slice(0, 10);
+  }
+
+  function isoOffset(iso, days) {
+    var d = new Date(iso + "T00:00:00Z");
+    d.setUTCDate(d.getUTCDate() + days);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function isoLabel(iso) {
+    var parts = iso.split("-");
+    var mIdx = parseInt(parts[1], 10) - 1;
+    var day = parseInt(parts[2], 10);
+    return MONTHS[mIdx][0].toUpperCase() + MONTHS[mIdx].slice(1) + " " + day;
   }
 
   function parseMaptap(raw) {
@@ -661,6 +694,8 @@
   var parsePreview = document.getElementById("parsePreview");
   var parseError = document.getElementById("parseError");
   var submitBtn = document.getElementById("submitBtn");
+  var dailyBoardEl = document.getElementById("dailyBoard");
+  var dailyMeta = document.getElementById("dailyMeta");
   var boardEl = document.getElementById("board");
   var boardMeta = document.getElementById("boardMeta");
   var feedEl = document.getElementById("feed");
@@ -820,20 +855,54 @@
   });
 
   // ---- example content shown until real entries load ----
+  // Dated relative to today so the daily board has something to show.
+  var EXAMPLE_TODAY = todayISO();
+  var EXAMPLE_YESTERDAY = isoOffset(EXAMPLE_TODAY, -1);
   var EXAMPLE_ENTRIES = [
-    { name: "Gabe", dateISO: "2026-09-11", dateLabel: "September 11", rounds: [
+    { name: "Gabe", dateISO: EXAMPLE_TODAY, dateLabel: isoLabel(EXAMPLE_TODAY), rounds: [
         { score: 95, emoji: "🏅" }, { score: 68, emoji: "😁" }, { score: 65, emoji: "🤫" },
         { score: 79, emoji: "👏" }, { score: 77, emoji: "👏" }
       ], finalScore: 761 },
-    { name: "Neha", dateISO: "2026-09-11", dateLabel: "September 11", rounds: [
+    { name: "Neha", dateISO: EXAMPLE_TODAY, dateLabel: isoLabel(EXAMPLE_TODAY), rounds: [
         { score: 88, emoji: "😁" }, { score: 91, emoji: "🏅" }, { score: 60, emoji: "🤫" },
         { score: 82, emoji: "👏" }, { score: 70, emoji: "👏" }
       ], finalScore: 748 },
-    { name: "Vic", dateISO: "2026-09-10", dateLabel: "September 10", rounds: [
+    { name: "Vic", dateISO: EXAMPLE_YESTERDAY, dateLabel: isoLabel(EXAMPLE_YESTERDAY), rounds: [
         { score: 72, emoji: "👏" }, { score: 84, emoji: "😁" }, { score: 90, emoji: "🏅" },
         { score: 66, emoji: "🤫" }, { score: 81, emoji: "👏" }
       ], finalScore: 733 }
   ];
+
+  function buildDailyBoard(list) {
+    var today = todayISO();
+    var groups = {};
+    list.forEach(function (e) {
+      if (e.dateISO !== today) return;
+      groups[slug(e.name)] = { name: e.name, total: e.finalScore };
+    });
+    var rows = Object.keys(groups).map(function (key) { return groups[key]; });
+    rows.sort(function (a, b) { return b.total - a.total; });
+    return rows;
+  }
+
+  function renderDailyBoard(list, isExample) {
+    var rows = buildDailyBoard(list);
+    dailyMeta.textContent = isExample ? "example" : (rows.length + (rows.length === 1 ? " player" : " players"));
+    if (!rows.length) {
+      dailyBoardEl.innerHTML = '<p class="empty-note">No one’s played today yet — be the first.</p>';
+      return;
+    }
+    var html = '<div class="board-row head"><span></span><span>Player</span><span class="col-right">Score</span></div>';
+    rows.forEach(function (r, i) {
+      var rank = i + 1;
+      html += '<div class="board-row">' +
+        '<span class="rank' + (rank === 1 ? " top1" : "") + '">' + rank + '</span>' +
+        '<span class="player-name">' + escapeHtml(r.name) + '</span>' +
+        '<span class="total metric-primary">' + r.total + '</span>' +
+      '</div>';
+    });
+    dailyBoardEl.innerHTML = html;
+  }
 
   function buildLeaderboard(list) {
     var groups = {};
@@ -910,9 +979,11 @@
 
   function render() {
     if (entries === null || entries.length === 0) {
+      renderDailyBoard(EXAMPLE_ENTRIES, true);
       renderBoard(EXAMPLE_ENTRIES, true);
       renderFeed(EXAMPLE_ENTRIES, true);
     } else {
+      renderDailyBoard(entries, false);
       renderBoard(entries, false);
       renderFeed(entries, false);
     }
