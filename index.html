@@ -206,11 +206,13 @@
       grid-template-columns: 340px minmax(0, 1fr);
       grid-template-areas:
         "log daily"
+        "rounds rounds"
         "board board"
         "feed feed";
     }
     .log-panel { grid-area: log; }
     .daily-panel { grid-area: daily; }
+    .rounds-panel { grid-area: rounds; }
     .board-panel { grid-area: board; }
     .feed-panel { grid-area: feed; }
   }
@@ -244,6 +246,24 @@
     font-size: 12px;
     color: var(--ink-faint);
     white-space: nowrap;
+  }
+  .round-select {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--pine-strong);
+    background: var(--paper-sunken);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  .round-select:focus-visible { outline: 2px solid var(--pine); outline-offset: 1px; }
+  .round-meta {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin: -6px 0 14px;
   }
 
   .field {
@@ -416,10 +436,33 @@
     font-size: 13px;
   }
   .col-right { text-align: right; }
+  .head-active {
+    color: var(--pine-strong);
+    font-weight: 700;
+    font-size: 13px;
+  }
 
   .daily-panel .board-row {
     grid-template-columns: 34px minmax(0,1fr) auto;
   }
+  .board-panel .board-row {
+    grid-template-columns: 34px minmax(0,1fr) auto auto auto;
+  }
+  .won-head {
+    max-width: 5em;
+    white-space: normal;
+    line-height: 1.2;
+  }
+  .won {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: right;
+    min-width: 40px;
+    color: var(--ink-faint);
+  }
+  .won.has-wins { color: var(--brass); }
 
   .feed { display: flex; flex-direction: column; gap: 18px; }
   .feed-day-label {
@@ -564,6 +607,15 @@
         <div class="board-table" id="dailyBoard"></div>
       </section>
 
+      <section class="panel rounds-panel" aria-labelledby="rounds-heading">
+        <div class="panel-head">
+          <h2 id="rounds-heading">Rounds Leaderboard</h2>
+          <select id="roundSelect" class="round-select" aria-label="Select round"></select>
+        </div>
+        <p class="round-meta" id="roundMeta"></p>
+        <div class="board-table" id="roundBoard"></div>
+      </section>
+
       <section class="panel board-panel" aria-labelledby="board-heading">
         <div class="panel-head">
           <h2 id="board-heading">Overall Leaderboard</h2>
@@ -706,6 +758,9 @@
   var submitBtn = document.getElementById("submitBtn");
   var dailyBoardEl = document.getElementById("dailyBoard");
   var dailyMeta = document.getElementById("dailyMeta");
+  var roundSelect = document.getElementById("roundSelect");
+  var roundMeta = document.getElementById("roundMeta");
+  var roundBoardEl = document.getElementById("roundBoard");
   var boardEl = document.getElementById("board");
   var boardMeta = document.getElementById("boardMeta");
   var feedEl = document.getElementById("feed");
@@ -717,6 +772,15 @@
   var pollTimer = null;
   var loggedInUser = null;
   var sortBy = "total"; // "total" or "avg"
+  var selectedRound = null; // null = follow the current round
+  var currentRoundNum = 1;
+  var GAMES_PER_ROUND = 10;
+
+  roundSelect.addEventListener("change", function () {
+    var n = parseInt(roundSelect.value, 10);
+    selectedRound = n === currentRoundNum ? null : n;
+    render();
+  });
 
   boardEl.addEventListener("click", function (e) {
     var btn = e.target.closest(".sort-btn");
@@ -918,6 +982,87 @@
     dailyBoardEl.innerHTML = html;
   }
 
+  // A round is every 10 game dates (dates with at least one game), counted
+  // across the whole group. The latest date always falls in the current round.
+  function computeRounds(list) {
+    var dates = [];
+    list.forEach(function (e) { if (dates.indexOf(e.dateISO) === -1) dates.push(e.dateISO); });
+    dates.sort();
+    var count = Math.max(1, Math.ceil(dates.length / GAMES_PER_ROUND));
+    var rounds = [];
+    for (var n = 1; n <= count; n++) {
+      var roundDates = dates.slice((n - 1) * GAMES_PER_ROUND, n * GAMES_PER_ROUND);
+      var groups = {};
+      list.forEach(function (e) {
+        if (roundDates.indexOf(e.dateISO) === -1) return;
+        var key = slug(e.name);
+        if (!groups[key]) groups[key] = { key: key, name: e.name, total: 0, games: 0 };
+        groups[key].total += e.finalScore;
+        groups[key].games += 1;
+      });
+      var rows = Object.keys(groups).map(function (key) {
+        var g = groups[key];
+        g.avg = Math.round(g.total / g.games);
+        return g;
+      });
+      rows.sort(function (a, b) { return b.avg - a.avg || b.total - a.total; });
+      rounds.push({ dates: roundDates, rows: rows, complete: roundDates.length === GAMES_PER_ROUND });
+    }
+    return rounds;
+  }
+
+  // Wins per player: highest Avg in each completed round (ties share the win).
+  function countRoundWins(list) {
+    var wins = {};
+    computeRounds(list).forEach(function (round) {
+      if (!round.complete || !round.rows.length) return;
+      var top = round.rows[0].avg;
+      round.rows.forEach(function (r) {
+        if (r.avg === top) wins[r.key] = (wins[r.key] || 0) + 1;
+      });
+    });
+    return wins;
+  }
+
+  function renderRoundBoard(list, isExample) {
+    var allRounds = computeRounds(list);
+    currentRoundNum = allRounds.length;
+    var shown = selectedRound && selectedRound <= currentRoundNum ? selectedRound : currentRoundNum;
+
+    if (roundSelect.options.length !== currentRoundNum) {
+      var opts = "";
+      for (var n = currentRoundNum; n >= 1; n--) {
+        opts += '<option value="' + n + '">Round ' + n + (n === currentRoundNum ? " (current)" : "") + '</option>';
+      }
+      roundSelect.innerHTML = opts;
+    }
+    roundSelect.value = String(shown);
+
+    var roundDates = allRounds[shown - 1].dates;
+    var rows = allRounds[shown - 1].rows;
+
+    var range = roundDates.length
+      ? isoLabel(roundDates[0]) + (roundDates.length > 1 ? " – " + isoLabel(roundDates[roundDates.length - 1]) : "")
+      : "No games yet";
+    roundMeta.textContent = range + " · " + roundDates.length + " of " + GAMES_PER_ROUND + " games played" + (isExample ? " · example" : "");
+
+    if (!rows.length) {
+      roundBoardEl.innerHTML = '<p class="empty-note">No one’s played yet — Round 1 starts with the first game.</p>';
+      return;
+    }
+    var html = '<div class="board-row head"><span></span><span>Player</span><span class="col-right head-active">Avg</span><span class="col-right">Total</span></div>';
+    rows.forEach(function (r, i) {
+      var rank = i + 1;
+      html += '<div class="board-row">' +
+        '<span class="rank' + (rank === 1 ? " top1" : "") + '">' + rank + '</span>' +
+        '<span><div class="player-name">' + escapeHtml(r.name) + '</div><div class="player-sub">' + r.games + "/" + GAMES_PER_ROUND + " games</div></span>" +
+        '<span class="avg metric-primary">' + r.avg + '</span>' +
+        '<span class="total metric-secondary">' + r.total + '</span>' +
+      '</div>';
+    });
+    roundBoardEl.innerHTML = html;
+  }
+
   function buildLeaderboard(list) {
     var groups = {};
     list.forEach(function (e) {
@@ -926,11 +1071,12 @@
       groups[key].name = e.name;
       groups[key].dates.push({ dateISO: e.dateISO, finalScore: e.finalScore });
     });
+    var wins = countRoundWins(list);
     var rows = Object.keys(groups).map(function (key) {
       var g = groups[key];
       var total = g.dates.reduce(function (sum, d) { return sum + d.finalScore; }, 0);
       var games = g.dates.length;
-      return { key: key, name: g.name, total: total, games: games, avg: Math.round(total / games) };
+      return { key: key, name: g.name, total: total, games: games, avg: Math.round(total / games), wins: wins[key] || 0 };
     });
     rows.sort(function (a, b) { return b[sortBy] - a[sortBy]; });
     return rows;
@@ -942,6 +1088,7 @@
     var html = '<div class="board-row head"><span></span><span>Player</span>' +
       '<button type="button" class="sort-btn' + (sortBy === "avg" ? " active" : "") + '" data-sort="avg">Avg</button>' +
       '<button type="button" class="sort-btn' + (sortBy === "total" ? " active" : "") + '" data-sort="total">Total</button>' +
+      '<span class="col-right won-head">Rounds Won</span>' +
     '</div>';
     if (!rows.length) {
       boardEl.innerHTML = '<p class="empty-note">No scores yet — be the first to log today’s Maptap.</p>';
@@ -954,6 +1101,7 @@
         '<span><div class="player-name">' + escapeHtml(r.name) + '</div><div class="player-sub">' + r.games + (r.games === 1 ? " game" : " games") + '</div></span>' +
         '<span class="avg ' + (sortBy === "avg" ? "metric-primary" : "metric-secondary") + '">' + r.avg + '</span>' +
         '<span class="total ' + (sortBy === "total" ? "metric-primary" : "metric-secondary") + '">' + r.total + '</span>' +
+        '<span class="won' + (r.wins > 0 ? " has-wins" : "") + '">' + r.wins + '</span>' +
       '</div>';
     });
     boardEl.innerHTML = html;
@@ -994,10 +1142,12 @@
   function render() {
     if (entries === null || entries.length === 0) {
       renderDailyBoard(EXAMPLE_ENTRIES, true);
+      renderRoundBoard(EXAMPLE_ENTRIES, true);
       renderBoard(EXAMPLE_ENTRIES, true);
       renderFeed(EXAMPLE_ENTRIES, true);
     } else {
       renderDailyBoard(entries, false);
+      renderRoundBoard(entries, false);
       renderBoard(entries, false);
       renderFeed(entries, false);
     }
