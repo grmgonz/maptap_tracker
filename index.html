@@ -633,6 +633,16 @@
     return MONTHS[mIdx][0].toUpperCase() + MONTHS[mIdx].slice(1) + " " + day;
   }
 
+  // Sheets turns date-looking text into date cells, so dateISO/dateLabel come
+  // back as timestamps. The id column stays text and starts with the real date.
+  function normalizeEntry(e) {
+    var m = /^(\d{4}-\d{2}-\d{2})__/.exec(String(e.id || ""));
+    var iso = m ? m[1] : String(e.dateISO || "").slice(0, 10);
+    e.dateISO = iso;
+    e.dateLabel = /^\d{4}-\d{2}-\d{2}$/.test(iso) ? isoLabel(iso) : iso;
+    return e;
+  }
+
   function parseMaptap(raw) {
     var lines = String(raw || "").split(/\n/).map(function (l) { return l.trim(); }).filter(Boolean);
     var dateISO = null, dateLabel = null, rounds = [], finalScore = null;
@@ -873,23 +883,27 @@
       ], finalScore: 733 }
   ];
 
+  // The daily board shows the most recent game date in the data, so it always
+  // matches the top group in Recent rounds.
   function buildDailyBoard(list) {
-    var today = todayISO();
+    var latest = list.reduce(function (max, e) { return e.dateISO > max ? e.dateISO : max; }, "");
     var groups = {};
     list.forEach(function (e) {
-      if (e.dateISO !== today) return;
+      if (e.dateISO !== latest) return;
       groups[slug(e.name)] = { name: e.name, total: e.finalScore };
     });
     var rows = Object.keys(groups).map(function (key) { return groups[key]; });
     rows.sort(function (a, b) { return b.total - a.total; });
-    return rows;
+    return { date: latest, rows: rows };
   }
 
   function renderDailyBoard(list, isExample) {
-    var rows = buildDailyBoard(list);
-    dailyMeta.textContent = isExample ? "example" : (rows.length + (rows.length === 1 ? " player" : " players"));
+    var board = buildDailyBoard(list);
+    var rows = board.rows;
+    var isToday = board.date === todayISO();
+    dailyMeta.textContent = isExample ? "example" : (rows.length ? (isToday ? "" : isoLabel(board.date) + " · ") + rows.length + (rows.length === 1 ? " player" : " players") : "");
     if (!rows.length) {
-      dailyBoardEl.innerHTML = '<p class="empty-note">No one’s played today yet — be the first.</p>';
+      dailyBoardEl.innerHTML = '<p class="empty-note">No one’s played yet — be the first.</p>';
       return;
     }
     var html = '<div class="board-row head"><span></span><span>Player</span><span class="col-right">Score</span></div>';
@@ -1001,7 +1015,9 @@
       .then(function (r) { return r.json(); })
       .then(function (data) {
         if (data && data.ok === false) throw new Error(data.error || "unauthorized");
-        entries = (data && data.entries) || [];
+        entries = ((data && data.entries) || []).map(normalizeEntry).filter(function (e) {
+          return /^\d{4}-\d{2}-\d{2}$/.test(e.dateISO);
+        });
         statusText.textContent = "Synced — " + entries.length + (entries.length === 1 ? " round logged." : " rounds logged.") + " · " + new Date().toLocaleTimeString();
         render();
       })
