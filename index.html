@@ -522,7 +522,7 @@
   <div class="login-wrap" id="loginScreen">
     <div class="login-card">
       <h2>Sign in</h2>
-      <p>This tracker is shared by the group. Pick your name and enter the group password to log a round or view live scores.</p>
+      <p>This tracker is shared by the group. Pick your name and enter the group password to log a game or view live scores.</p>
       <div id="loginError" class="login-error" hidden></div>
       <label class="field">
         <span>Player</span>
@@ -545,7 +545,7 @@
   <div id="appBody" hidden>
     <main class="layout">
       <section class="panel log-panel" aria-labelledby="log-heading">
-        <h2 id="log-heading">Log today's round</h2>
+        <h2 id="log-heading">Log today's game</h2>
         <label class="field">
           <span>Paste your Maptap result</span>
           <textarea id="pasteInput" rows="4" placeholder="www.maptap.gg September 11&#10;95🏅 68😁 65🤫 79👏 77👏&#10;Final score: 761"></textarea>
@@ -553,7 +553,7 @@
         <div id="parsePreview" class="parse-preview" hidden></div>
         <div id="parseError" class="parse-error" hidden></div>
         <button id="submitBtn" type="button" disabled>Add to tracker</button>
-        <p class="hint">Copy the result straight from the maptap.gg share button — the date, each round's score, and the final score parse automatically. It's saved under your logged-in name.</p>
+        <p class="hint">Copy the result straight from the maptap.gg share button — the date, each guess's score, and the final score parse automatically. It's saved under your logged-in name.</p>
       </section>
 
       <section class="panel daily-panel" aria-labelledby="daily-heading">
@@ -574,7 +574,7 @@
 
       <section class="panel feed-panel" aria-labelledby="feed-heading">
         <div class="panel-head">
-          <h2 id="feed-heading">Recent rounds</h2>
+          <h2 id="feed-heading">Recent games</h2>
         </div>
         <div class="feed" id="feed"></div>
       </section>
@@ -800,7 +800,7 @@
     var parsed = parseMaptap(raw);
     var missing = [];
     if (!parsed.dateISO) missing.push("a date (e.g. “September 11”)");
-    if (!parsed.rounds.length) missing.push("round scores (e.g. “95🏅”)");
+    if (!parsed.rounds.length) missing.push("guess scores (e.g. “95🏅”)");
     if (parsed.finalScore == null) missing.push("a final score line");
 
     if (missing.length) {
@@ -859,7 +859,7 @@
         submitBtn.textContent = "Add to tracker";
         parseError.hidden = false;
         parsePreview.hidden = true;
-        parseError.textContent = "Couldn't save that round (" + err.message + "). Check the Apps Script deployment and try again.";
+        parseError.textContent = "Couldn't save that game (" + err.message + "). Check the Apps Script deployment and try again.";
       })
       .then(function () { refreshSubmitEnabled(); });
   });
@@ -884,7 +884,7 @@
   ];
 
   // The daily board shows the most recent game date in the data, so it always
-  // matches the top group in Recent rounds.
+  // matches the top group in Recent games.
   function buildDailyBoard(list) {
     var latest = list.reduce(function (max, e) { return e.dateISO > max ? e.dateISO : max; }, "");
     var groups = {};
@@ -951,7 +951,7 @@
       var rank = i + 1;
       html += '<div class="board-row">' +
         '<span class="rank' + (rank === 1 ? " top1" : "") + '">' + rank + '</span>' +
-        '<span><div class="player-name">' + escapeHtml(r.name) + '</div><div class="player-sub">' + r.games + (r.games === 1 ? " round" : " rounds") + '</div></span>' +
+        '<span><div class="player-name">' + escapeHtml(r.name) + '</div><div class="player-sub">' + r.games + (r.games === 1 ? " game" : " games") + '</div></span>' +
         '<span class="avg ' + (sortBy === "avg" ? "metric-primary" : "metric-secondary") + '">' + r.avg + '</span>' +
         '<span class="total ' + (sortBy === "total" ? "metric-primary" : "metric-secondary") + '">' + r.total + '</span>' +
       '</div>';
@@ -1018,7 +1018,7 @@
         entries = ((data && data.entries) || []).map(normalizeEntry).filter(function (e) {
           return /^\d{4}-\d{2}-\d{2}$/.test(e.dateISO);
         });
-        statusText.textContent = "Synced — " + entries.length + (entries.length === 1 ? " round logged." : " rounds logged.") + " · " + new Date().toLocaleTimeString();
+        statusText.textContent = "Synced — " + entries.length + (entries.length === 1 ? " game logged." : " games logged.") + " · " + new Date().toLocaleTimeString();
         render();
       })
       .catch(function (err) {
